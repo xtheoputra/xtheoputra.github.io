@@ -1,0 +1,39 @@
+name: Site check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 3 * * 1" # weekly, to catch links that rot over time
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  structured-data:
+    name: Structured data
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/check-structured-data.mjs
+
+  links:
+    name: Link check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: lycheeverse/lychee-action@v2
+        with:
+          # LinkedIn and Medium answer bots with 999/403; they are checked by hand.
+          args: --no-progress --max-retries 3 --accept 200,206,429 --exclude linkedin.com --exclude medium.com "**/*.html" "*.md"
+          fail: true

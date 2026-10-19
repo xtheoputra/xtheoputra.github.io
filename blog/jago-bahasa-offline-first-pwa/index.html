@@ -4,19 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>I built a 23-language learning app with zero dependencies and no build step. Here's what offline-first really takes</title>
-  <meta name="description" content="Jago Bahasa is an open-source PWA for 23 languages with zero dependencies and no build step. What offline-first really takes: service workers, .gitignore, and testing on plain node --test.">
+  <meta name="description" content="Jago Bahasa is a PWA for 23 languages with zero dependencies and no build step. What offline-first really takes: service workers, .gitignore, and testing on plain node --test.">
   <meta name="author" content="Harasta Rahman Tri Putra">
   <link rel="canonical" href="https://xtheoputra.github.io/blog/jago-bahasa-offline-first-pwa/">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://xtheoputra.github.io/blog/jago-bahasa-offline-first-pwa/">
   <meta property="og:title" content="I built a 23-language learning app with zero dependencies and no build step. Here's what offline-first really takes">
-  <meta property="og:description" content="Jago Bahasa is an open-source PWA for 23 languages with zero dependencies and no build step. What offline-first really takes: service workers, .gitignore, and testing on plain node --test.">
+  <meta property="og:description" content="Jago Bahasa is a PWA for 23 languages with zero dependencies and no build step. What offline-first really takes: service workers, .gitignore, and testing on plain node --test.">
   <meta property="og:image" content="https://xtheo-labs.vercel.app/opengraph-image">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="I built a 23-language learning app with zero dependencies and no build step. Here's what offline-first really takes">
-  <meta name="twitter:description" content="Jago Bahasa is an open-source PWA for 23 languages with zero dependencies and no build step. What offline-first really takes: service workers, .gitignore, and testing on plain node --test.">
+  <meta name="twitter:description" content="Jago Bahasa is a PWA for 23 languages with zero dependencies and no build step. What offline-first really takes: service workers, .gitignore, and testing on plain node --test.">
   <meta name="twitter:image" content="https://xtheo-labs.vercel.app/opengraph-image">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"I built a 23-language learning app with zero dependencies and no build step. Here's what offline-first really takes","description":"Jago Bahasa is an open-source PWA for 23 languages with zero dependencies and no build step. What offline-first really takes: service workers, .gitignore, and testing on plain node --test.","datePublished":"2026-10-19","dateModified":"2026-10-19","inLanguage":"en","keywords":"pwa, javascript, offline-first, service worker, testing","url":"https://xtheoputra.github.io/blog/jago-bahasa-offline-first-pwa/","mainEntityOfPage":"https://xtheoputra.github.io/blog/jago-bahasa-offline-first-pwa/","image":"https://xtheo-labs.vercel.app/opengraph-image","author":{"@id":"https://xtheo-labs.vercel.app/#person","@type":"Person","name":"Harasta Rahman Tri Putra","alternateName":["xTheoPutra","xtheoputra","xTheo"],"url":"https://xtheo-labs.vercel.app"},"publisher":{"@type":"Organization","name":"xTheo Labs","url":"https://xtheo-labs.vercel.app"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"I built a 23-language learning app with zero dependencies and no build step. Here's what offline-first really takes","description":"Jago Bahasa is a PWA for 23 languages with zero dependencies and no build step. What offline-first really takes: service workers, .gitignore, and testing on plain node --test.","datePublished":"2026-10-19","dateModified":"2026-10-19","inLanguage":"en","keywords":"pwa, javascript, offline-first, service worker, testing","url":"https://xtheoputra.github.io/blog/jago-bahasa-offline-first-pwa/","mainEntityOfPage":"https://xtheoputra.github.io/blog/jago-bahasa-offline-first-pwa/","image":"https://xtheo-labs.vercel.app/opengraph-image","author":{"@id":"https://xtheo-labs.vercel.app/#person","@type":"Person","name":"Harasta Rahman Tri Putra","alternateName":["xTheoPutra","xtheoputra","xTheo"],"url":"https://xtheo-labs.vercel.app"},"publisher":{"@type":"Organization","name":"xTheo Labs","url":"https://xtheo-labs.vercel.app"}}</script>
   <style>
     :root { --bg:#fff; --card:#fff; --text:#0f172a; --muted:#475569; --border:#e2e8f0; --accent:#2563eb; --code:#f5f7fb; }
     @media (prefers-color-scheme: dark) {
@@ -50,7 +50,7 @@
       <h1>I built a 23-language learning app with zero dependencies and no build step. Here's what offline-first really takes</h1>
       <p class="meta">By <a href="https://xtheo-labs.vercel.app">Harasta Rahman Tri Putra</a> (xTheoPutra) · <time datetime="2026-10-19">19 October 2026</time></p>
 <h1>I built a 23-language learning app with zero dependencies and no build step. Here&#39;s what offline-first really takes</h1>
-<p>Jago Bahasa (&quot;good at languages&quot; in Indonesian) is a free, open-source PWA for learning 23 languages, from Korean and Arabic to Swahili and Ukrainian. It is plain HTML, CSS and ES modules. There is no framework, no bundler, no <code>node_modules</code>, and <code>package.json</code> has no <code>dependencies</code> key at all. You can open the live demo, load it once, switch to airplane mode, and keep studying.</p>
+<p>Jago Bahasa (&quot;good at languages&quot; in Indonesian) is a free PWA for learning 23 languages, from Korean and Arabic to Swahili and Ukrainian. It is plain HTML, CSS and ES modules. There is no framework, no bundler, no <code>node_modules</code>, and <code>package.json</code> has no <code>dependencies</code> key at all. You can open the live demo, load it once, switch to airplane mode, and keep studying.</p>
 <p>What it contains today, recounted from the repo rather than copied from the README:</p>
 <ul>
 <li>23 courses with 442 lessons and 3,563 vocabulary items</li>
@@ -137,7 +137,7 @@ export function hasVoice(lang) {
 <p>One more lesson from CI: the final-exam test used to try only 10 random rounds and passed for weeks while the generator was lopsided (one stage got 9 questions, another 6). At 200 rounds it fails immediately on the old code. A test that samples randomly a few times isn&#39;t a guard. It&#39;s a lottery.</p>
 <h2>What it isn&#39;t (yet)</h2>
 <ul>
-<li>The UI is available in Indonesian, English and Spanish, and word meanings exist only in those three. The README, design log and commit messages are mostly in Indonesian.</li>
+<li>The UI is available in Indonesian, English and Spanish, and word meanings exist only in those three. The design log and commit messages are mostly in Indonesian.</li>
 <li>Content depth is uneven. English and Korean have 32 lessons each; the other 21 languages have 18. The dictionaries, by contrast, are identical in size.</li>
 <li>Pronunciation quality depends on the voices your device has.</li>
 <li>Accounts in static-hosting mode live in IndexedDB (PBKDF2, 600,000 iterations). That keeps profiles separate on a shared device, but it doesn&#39;t protect anything from someone with physical access to the device.</li>
@@ -146,13 +146,12 @@ export function hasVoice(lang) {
 <p>If you&#39;re thinking about building an offline-first app without a toolchain, my takeaway is that the build step you skip comes back as discipline. Your precache list, your <code>.gitignore</code>, and your version bump become the release process, so test them like code.</p>
 <h2>Links</h2>
 <ul>
-<li>Live demo: <a href="https://xtheoputra.github.io/jago-bahasa/">https://xtheoputra.github.io/jago-bahasa/</a></li>
-<li>Source (MIT): <a href="https://github.com/xtheoputra/jago-bahasa">https://github.com/xtheoputra/jago-bahasa</a></li>
+<li>Live app: <a href="https://jago-bahasa.vercel.app/">https://jago-bahasa.vercel.app/</a></li>
 <li>xTheo Labs: <a href="https://xtheo-labs.vercel.app">https://xtheo-labs.vercel.app</a></li>
 </ul>
 <hr>
-<h2>Sources (claim → where to verify)</h2>
-<p>Repo checked out at commit <code>e8389fa</code> (2026-10-19). Commands are run from the repo root.</p>
+<h2>Sources (claim → where it comes from)</h2>
+<p>Recounted from the project repository at commit <code>e8389fa</code> (2026-10-19). The repository is private; file and command references are kept for the record.</p>
 <table>
 <thead>
 <tr>
@@ -287,10 +286,6 @@ export function hasVoice(lang) {
 <tr>
 <td>About four months of development</td>
 <td><code>git log --reverse</code> first commit 2026-06-24; last commit 2026-10-19</td>
-</tr>
-<tr>
-<td>MIT license</td>
-<td><code>package.json</code> <code>&quot;license&quot;: &quot;MIT&quot;</code>; README footer</td>
 </tr>
 </tbody></table>
 

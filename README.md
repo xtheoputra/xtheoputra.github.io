@@ -4,7 +4,7 @@ Link hub for **Harasta Rahman Tri Putra** (xTheo, [@xtheoputra](https://github.c
 
 Live: https://xtheoputra.github.io
 
-This root GitHub Pages site also serves the domain-level `robots.txt`, which points crawlers to the sitemaps of the project sites under `xtheoputra.github.io/` (for example [Jago Bahasa](https://xtheoputra.github.io/jago-bahasa/)). Crawlers read `robots.txt` only at the domain root, so a project site can't publish its own.
+This GitHub Pages site serves the link hub, the blog, and the domain-level `robots.txt` and `sitemap.xml`.
 
 | File | Purpose |
 |---|---|
