@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Building a local-first Windows defense monitor: ETW, the Event Log, and MITRE ATT&amp;CK, with zero telemetry</title>
+  <meta name="description" content="What I learned building Silent Tears, a Windows security monitor that keeps all its data on the machine, explains every alert with MITRE ATT&amp;CK, and asks before it acts.">
+  <meta name="author" content="Harasta Rahman Tri Putra">
+  <link rel="canonical" href="https://xtheoputra.github.io/blog/silent-tears-local-first-windows-monitor/">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://xtheoputra.github.io/blog/silent-tears-local-first-windows-monitor/">
+  <meta property="og:title" content="Building a local-first Windows defense monitor: ETW, the Event Log, and MITRE ATT&amp;CK, with zero telemetry">
+  <meta property="og:description" content="What I learned building Silent Tears, a Windows security monitor that keeps all its data on the machine, explains every alert with MITRE ATT&amp;CK, and asks before it acts.">
+  <meta property="og:image" content="https://xtheo-labs.vercel.app/opengraph-image">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Building a local-first Windows defense monitor: ETW, the Event Log, and MITRE ATT&amp;CK, with zero telemetry">
+  <meta name="twitter:description" content="What I learned building Silent Tears, a Windows security monitor that keeps all its data on the machine, explains every alert with MITRE ATT&amp;CK, and asks before it acts.">
+  <meta name="twitter:image" content="https://xtheo-labs.vercel.app/opengraph-image">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Building a local-first Windows defense monitor: ETW, the Event Log, and MITRE ATT&CK, with zero telemetry","description":"What I learned building Silent Tears, a Windows security monitor that keeps all its data on the machine, explains every alert with MITRE ATT&CK, and asks before it acts.","datePublished":"2026-10-19","dateModified":"2026-10-19","inLanguage":"en","keywords":"windows security, mitre att&ck, etw, detection engineering, python","url":"https://xtheoputra.github.io/blog/silent-tears-local-first-windows-monitor/","mainEntityOfPage":"https://xtheoputra.github.io/blog/silent-tears-local-first-windows-monitor/","image":"https://xtheo-labs.vercel.app/opengraph-image","author":{"@id":"https://xtheo-labs.vercel.app/#person","@type":"Person","name":"Harasta Rahman Tri Putra","alternateName":["xTheoPutra","xtheoputra","xTheo"],"url":"https://xtheo-labs.vercel.app"},"publisher":{"@type":"Organization","name":"xTheo Labs","url":"https://xtheo-labs.vercel.app"}}</script>
+  <style>
+    :root { --bg:#fff; --card:#fff; --text:#0f172a; --muted:#475569; --border:#e2e8f0; --accent:#2563eb; --code:#f5f7fb; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:#0b0f17; --card:#121a2a; --text:#e8edf6; --muted:#9aa8bd; --border:#233046; --accent:#6ea8ff; --code:#111827; }
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
+    main { max-width:720px; margin:0 auto; padding:40px 16px 56px; }
+    nav a, footer a, article a { color:var(--accent); }
+    nav { font-size:.95rem; }
+    h1 { font-size:2rem; line-height:1.25; letter-spacing:-.02em; margin:24px 0 8px; }
+    h2 { margin-top:2.2em; line-height:1.3; }
+    h3 { margin-top:1.6em; }
+    .meta { color:var(--muted); font-size:.95rem; margin:0 0 28px; }
+    pre { background:var(--code); border:1px solid var(--border); border-radius:10px; padding:14px; overflow-x:auto; font-size:.86rem; line-height:1.5; }
+    code { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:.9em; }
+    table { border-collapse:collapse; width:100%; display:block; overflow-x:auto; font-size:.9rem; }
+    th, td { border:1px solid var(--border); padding:6px 10px; text-align:left; vertical-align:top; }
+    blockquote { margin:1em 0; padding:.2em 1em; border-left:3px solid var(--border); color:var(--muted); }
+    ul.posts { list-style:none; padding:0; display:grid; gap:12px; }
+    ul.posts a { display:block; padding:16px; border:1px solid var(--border); border-radius:12px; background:var(--card); color:var(--text); text-decoration:none; }
+    ul.posts a:hover, ul.posts a:focus-visible { border-color:var(--accent); outline:none; }
+    ul.posts span { display:block; color:var(--muted); font-size:.92rem; margin-top:4px; }
+    footer { margin-top:48px; padding-top:20px; border-top:1px solid var(--border); color:var(--muted); font-size:.9rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <nav><a href="https://xtheoputra.github.io/">xTheoPutra</a> · <a href="https://xtheoputra.github.io/blog/">Blog</a> · <a href="https://xtheo-labs.vercel.app">Portfolio</a></nav>
+    <article>
+      <h1>Building a local-first Windows defense monitor: ETW, the Event Log, and MITRE ATT&amp;CK, with zero telemetry</h1>
+      <p class="meta">By <a href="https://xtheo-labs.vercel.app">Harasta Rahman Tri Putra</a> (xTheoPutra) · <time datetime="2026-10-19">19 October 2026</time></p>
+<h1>Building a local-first Windows defense monitor: ETW, the Event Log, and MITRE ATT&amp;CK, with zero telemetry</h1>
+<p><em>What I learned building Silent Tears, a Windows security monitor that keeps all its data on the machine, explains every alert and asks before it acts.</em></p>
+<hr>
+<p>On one ordinary day of use, my own PC started 31,880 new processes. 28,831 of them had already exited by the time anything got around to inspecting them.</p>
+<p>Until version 0.7.0 of Silent Tears, my Windows security monitor, those processes never existed. It compared snapshots taken a few seconds apart, so anything that started and exited in between was invisible. I tested this on purpose. A <code>powershell.exe -EncodedCommand</code> that ran for one second left no record. The same command kept alive for 40 seconds was caught as CRIT, 90/100, with its base64 decoded.</p>
+<p>That gap shaped most of what I now believe about defensive tools.</p>
+<h2>The problem</h2>
+<p>I wanted a monitor for one Windows PC that would tell me who signed in, what was spawned, what connected out and what changed, and <strong>why</strong> each mattered, without sending my process names, IP addresses or file paths to anyone&#39;s server.</p>
+<p>Windows already records much of this: sign-ins in the Security log, process creation through WMI, PowerShell and Defender in their own event channels. What&#39;s missing is something local that connects these signals, explains them in a shared vocabulary, and is honest about what it cannot see.</p>
+<h2>Three design principles</h2>
+<h3>1. Local-first means zero packets</h3>
+<p>&quot;No telemetry&quot; turned out to be harder than not adding analytics. Up to 0.7.0, the app resolved hostnames for remote addresses through three paths, and one (<code>nbtstat -A &lt;ip&gt;</code>) sent UDP/137 straight to the target, including internet hosts my browser had just contacted. A defensive tool that probes foreign hosts behaves like a scanner. It was noisy too: <strong>37.03%</strong> of 121,874 production log lines were the app watching its own <code>nbtstat.exe</code> and <code>conhost.exe</code>.</p>
+<p>Now names come only from the Windows DNS client cache, which sends nothing. The cost is written down: only 23% of connected addresses got a name at measurement time. The rest read &quot;never seen in this machine&#39;s DNS cache&quot;, which beats a made-up name or a probe packet. GeoIP is bundled and updated offline. The only feature that reaches the internet is an optional Telegram notifier, off by default and configured by you.</p>
+<h3>2. Explain every alert</h3>
+<p>Findings map to MITRE ATT&amp;CK IDs from an <strong>offline catalogue of 150 techniques</strong>, so a warning reads as <code>T1110.001</code> and not just &quot;suspicious login&quot;. Where there&#39;s no honest mapping, it shows none rather than a guess. Correlated cases list their reasons one factor per line, and confidence is clamped to <strong>10–95%</strong>, never 100. A result of &quot;unknown&quot; is never treated as safe. If an Authenticode signature can&#39;t be checked, the app says it &quot;cannot be established&quot; and does not call the file unsigned. The app is also never allowed to tell you your PC is safe. The strongest thing it may say is close to <em>&quot;of the things I know how to check, nothing is red.&quot;</em></p>
+<h3>3. The user confirms every action</h3>
+<p>The built-in analyst, AEGIS, reads the machine through a gateway of <strong>25 read-only tools</strong>. Its <strong>7 action tools</strong> (terminate, block, quarantine, isolate and so on) are registered <em>without a function</em>, so the gateway refuses them for every caller. An action starts as a proposal on a confirmation card. The approval token is single-use and expires after 120 seconds, and when you confirm, the target is fingerprinted again, so a recycled PID or a changed sha256 means nothing runs.</p>
+<p>There is one exception. An auto-response mode can block or terminate on its own, but it is <strong>off by default</strong>, and its guards can&#39;t be disabled: it never touches private addresses and never acts on outbound connections.</p>
+<h2>How detection works</h2>
+<p>One <code>QThread</code> engine runs 20 detector classes in a poll loop. Some are off by default, and some need Administrator rights and switch themselves off cleanly without them. Each detector emits the same small <code>ThreatEvent</code> with a source, a severity (INFO/WARN/CRIT), a title, a detail and a <code>meta</code> dict.</p>
+<p><strong>Process births.</strong> The fix for the snapshot gap was to subscribe to process starts:</p>
+<pre><code class="language-python">MODE_ETW = &quot;etw&quot;            # Win32_ProcessStartTrace (butuh admin)
+MODE_SURVEI = &quot;survei&quot;      # __InstanceCreationEvent WITHIN 1 (tanpa admin)
+...
+_KUERI_ETW = &quot;SELECT * FROM Win32_ProcessStartTrace&quot;
+_KUERI_SURVEI = (&quot;SELECT * FROM __InstanceCreationEvent WITHIN 1 &quot;
+                 &quot;WHERE TargetInstance ISA &#39;Win32_Process&#39;&quot;)
+</code></pre>
+<p>(The code comments are in Indonesian. <em>butuh admin</em> means &quot;needs admin&quot; and <em>tanpa admin</em> means &quot;without admin&quot;.)</p>
+<p>With Administrator rights, <code>Win32_ProcessStartTrace</code> is driven by kernel process-start events (ETW), and those 28,831 short-lived processes became visible. Without admin, the app falls back to a WMI survey that narrows the blind window but does not close it, and it says which mode is running. Calling both &quot;real-time&quot; would tell a standard user the gap was closed when it had only shrunk.</p>
+<p><strong>The Event Log.</strong> The Security log provides failed sign-ins, lockouts and RDP activity:</p>
+<pre><code class="language-python">WATCHED = {
+    4625: (&quot;WARN&quot;, &quot;Login GAGAL&quot;),
+    4740: (&quot;CRIT&quot;, &quot;Akun terkunci (lockout)&quot;),
+    4624: (&quot;INFO&quot;, &quot;Login berhasil&quot;),
+    4778: (&quot;WARN&quot;, &quot;Sesi RDP tersambung kembali&quot;),
+}
+# Logon type 10 = RemoteInteractive (RDP), 7 = unlock
+RDP_LOGON_TYPE = &quot;10&quot;
+</code></pre>
+<p>Two bugs taught me things here. I had read fields with one layout for every event ID, so the feed showed the <em>domain</em> as the locked-out account; fields are now mapped per event ID from the provider&#39;s message templates. And with logon auditing off, Windows writes no 4624/4625 at all, so an empty log looks just like a quiet one. The detector now reads the audit policy at start and warns &quot;data source off&quot;.</p>
+<p>Channels readable without admin add PowerShell script blocks (event 4104, already decoded by PowerShell), Defender&#39;s Operational channel and, once enabled, per-process DNS queries from <code>DNS-Client/Operational</code>.</p>
+<p><strong>Process and network context.</strong> <code>psutil</code> connections are kept separate as inbound and outbound. A lineage module checks 12 suspicious parent→child rules (Office → PowerShell and similar) and decodes <code>-EncodedCommand</code>. Authenticode goes through <code>WinVerifyTrust</code>, including the catalogue path much of System32 relies on. Beaconing is scored with median and MAD and reported only as a &quot;beacon-like pattern&quot;, because legitimate traffic is regular too.</p>
+<p><strong>ATT&amp;CK mapping and correlation.</strong> Detectors attach technique IDs in <code>meta</code>. A correlation engine with <strong>12 attack-chain rules</strong> joins events into cases: failed logons, then a successful remote logon, then a new admin account becomes one account-takeover story. A case&#39;s techniques merge the rule&#39;s IDs with the detectors&#39; IDs, each validated against the offline catalogue (trimmed for length):</p>
+<pre><code class="language-python">def _teknik(rule_obj: Rule, bukti: list) -&gt; list:
+    &quot;&quot;&quot;Teknik ATT&amp;CK aturan + yang sudah dititipkan detektor di meta.&quot;&quot;&quot;
+    out: list = []
+    for tid in rule_obj.techniques:
+        t = _teks(tid)
+        if t and t not in out:
+            out.append(t)
+    for e in bukti:
+        raw = e.meta.get(&quot;techniques&quot;)
+        if not isinstance(raw, list):
+            continue
+        for tid in raw[:12]:
+            t = _teks(tid)
+            if not t or t in out:
+                continue
+            # ... each ID is validated against the offline catalogue ...
+            out.append(t)
+    return out[:20]
+</code></pre>
+<h2>Testing approach</h2>
+<p>The suite has <strong>1,884 tests</strong> in stdlib <code>unittest</code> that never touch the user&#39;s real logs or config, run by GitHub Actions on <code>windows-latest</code> on every push. The house rules came from my own mistakes:</p>
+<ul>
+<li><strong>Prove a test can fail.</strong> Run each regression test against the old code first.</li>
+<li><strong>A scanner that finds nothing is always green.</strong> One test walks every string literal and fails on any ATT&amp;CK ID missing from the catalogue; a companion test proves the scanner actually finds IDs. A similar AST test fails if anything but the response engine calls quarantine.</li>
+<li><strong>An empty suite is not a passing suite.</strong> The runner once reported success after running zero tests.</li>
+<li><strong>Measure on the real machine, on a copy of real data.</strong> Rendering the dashboard showed START and STOP off-screen at the default width, while the status bar said &quot;Press START to begin monitoring.&quot;</li>
+</ul>
+<p>My notes list seven defects a green suite missed. Tests protect what you already understand; they don&#39;t find what nobody has looked at.</p>
+<h2>What I&#39;d do differently, and what&#39;s next</h2>
+<p>I would design around event subscription from day one rather than snapshots. I would also treat &quot;the data source is silent&quot; as a first-class state from the beginning, because almost every serious bug I found was some form of <em>silence that looked like safety</em>.</p>
+<p>Next on the list:</p>
+<ul>
+<li>A code-signed release. The 0.9.0 installer is currently unsigned, so SmartScreen shows &quot;Unknown publisher&quot;.</li>
+<li>A pilot on a PC that isn&#39;t mine. 1.0 waits until someone other than the author has used it.</li>
+<li>The PowerShell 7 event channel.</li>
+<li>Deeper telemetry that needs a proper kernel trace session.</li>
+<li>A full English UI. The interface is currently in Indonesian.</li>
+</ul>
+<h2>Try it</h2>
+<ul>
+<li><strong>Download (Windows 10/11, 64-bit):</strong> <a href="https://github.com/xtheoputra/silent-tears-releases">https://github.com/xtheoputra/silent-tears-releases</a>. Verify the SHA-256 listed in the release notes.</li>
+<li><strong>Product site:</strong> <a href="https://silent-tears-web.vercel.app">https://silent-tears-web.vercel.app</a></li>
+<li><strong>xTheo Labs:</strong> <a href="https://xtheo-labs.vercel.app">https://xtheo-labs.vercel.app</a></li>
+</ul>
+<p>Only run it on machines you own or are allowed to monitor. If you work on Windows detection engineering, I&#39;d like to hear which signal you would add next.</p>
+<p><em>Harasta Rahman Tri Putra (xTheo), founder of xTheo Labs</em></p>
+<hr>
+<hr>
+
+    </article>
+    <footer>© 2026 Harasta Rahman Tri Putra (xTheoPutra) · <a href="https://xtheo-labs.vercel.app">xTheo Labs</a> · <a href="https://github.com/xtheoputra">GitHub</a></footer>
+  </main>
+</body>
+</html>

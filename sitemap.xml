@@ -2,7 +2,18 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://xtheoputra.github.io/</loc>
-    <changefreq>monthly</changefreq>
-    <priority>1.0</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://xtheoputra.github.io/blog/</loc>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://xtheoputra.github.io/blog/silent-tears-local-first-windows-monitor/</loc>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://xtheoputra.github.io/blog/jago-bahasa-offline-first-pwa/</loc>
+    <lastmod>2026-10-19</lastmod>
   </url>
 </urlset>

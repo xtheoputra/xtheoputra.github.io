@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>I built a 23-language learning app with zero dependencies and no build step. Here's what offline-first really takes</title>
+  <meta name="description" content="Jago Bahasa is an open-source PWA for 23 languages with zero dependencies and no build step. What offline-first really takes: service workers, .gitignore, and testing on plain node --test.">
+  <meta name="author" content="Harasta Rahman Tri Putra">
+  <link rel="canonical" href="https://xtheoputra.github.io/blog/jago-bahasa-offline-first-pwa/">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://xtheoputra.github.io/blog/jago-bahasa-offline-first-pwa/">
+  <meta property="og:title" content="I built a 23-language learning app with zero dependencies and no build step. Here's what offline-first really takes">
+  <meta property="og:description" content="Jago Bahasa is an open-source PWA for 23 languages with zero dependencies and no build step. What offline-first really takes: service workers, .gitignore, and testing on plain node --test.">
+  <meta property="og:image" content="https://xtheo-labs.vercel.app/opengraph-image">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="I built a 23-language learning app with zero dependencies and no build step. Here's what offline-first really takes">
+  <meta name="twitter:description" content="Jago Bahasa is an open-source PWA for 23 languages with zero dependencies and no build step. What offline-first really takes: service workers, .gitignore, and testing on plain node --test.">
+  <meta name="twitter:image" content="https://xtheo-labs.vercel.app/opengraph-image">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"I built a 23-language learning app with zero dependencies and no build step. Here's what offline-first really takes","description":"Jago Bahasa is an open-source PWA for 23 languages with zero dependencies and no build step. What offline-first really takes: service workers, .gitignore, and testing on plain node --test.","datePublished":"2026-10-19","dateModified":"2026-10-19","inLanguage":"en","keywords":"pwa, javascript, offline-first, service worker, testing","url":"https://xtheoputra.github.io/blog/jago-bahasa-offline-first-pwa/","mainEntityOfPage":"https://xtheoputra.github.io/blog/jago-bahasa-offline-first-pwa/","image":"https://xtheo-labs.vercel.app/opengraph-image","author":{"@id":"https://xtheo-labs.vercel.app/#person","@type":"Person","name":"Harasta Rahman Tri Putra","alternateName":["xTheoPutra","xtheoputra","xTheo"],"url":"https://xtheo-labs.vercel.app"},"publisher":{"@type":"Organization","name":"xTheo Labs","url":"https://xtheo-labs.vercel.app"}}</script>
+  <style>
+    :root { --bg:#fff; --card:#fff; --text:#0f172a; --muted:#475569; --border:#e2e8f0; --accent:#2563eb; --code:#f5f7fb; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:#0b0f17; --card:#121a2a; --text:#e8edf6; --muted:#9aa8bd; --border:#233046; --accent:#6ea8ff; --code:#111827; }
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
+    main { max-width:720px; margin:0 auto; padding:40px 16px 56px; }
+    nav a, footer a, article a { color:var(--accent); }
+    nav { font-size:.95rem; }
+    h1 { font-size:2rem; line-height:1.25; letter-spacing:-.02em; margin:24px 0 8px; }
+    h2 { margin-top:2.2em; line-height:1.3; }
+    h3 { margin-top:1.6em; }
+    .meta { color:var(--muted); font-size:.95rem; margin:0 0 28px; }
+    pre { background:var(--code); border:1px solid var(--border); border-radius:10px; padding:14px; overflow-x:auto; font-size:.86rem; line-height:1.5; }
+    code { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:.9em; }
+    table { border-collapse:collapse; width:100%; display:block; overflow-x:auto; font-size:.9rem; }
+    th, td { border:1px solid var(--border); padding:6px 10px; text-align:left; vertical-align:top; }
+    blockquote { margin:1em 0; padding:.2em 1em; border-left:3px solid var(--border); color:var(--muted); }
+    ul.posts { list-style:none; padding:0; display:grid; gap:12px; }
+    ul.posts a { display:block; padding:16px; border:1px solid var(--border); border-radius:12px; background:var(--card); color:var(--text); text-decoration:none; }
+    ul.posts a:hover, ul.posts a:focus-visible { border-color:var(--accent); outline:none; }
+    ul.posts span { display:block; color:var(--muted); font-size:.92rem; margin-top:4px; }
+    footer { margin-top:48px; padding-top:20px; border-top:1px solid var(--border); color:var(--muted); font-size:.9rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <nav><a href="https://xtheoputra.github.io/">xTheoPutra</a> · <a href="https://xtheoputra.github.io/blog/">Blog</a> · <a href="https://xtheo-labs.vercel.app">Portfolio</a></nav>
+    <article>
+      <h1>I built a 23-language learning app with zero dependencies and no build step. Here's what offline-first really takes</h1>
+      <p class="meta">By <a href="https://xtheo-labs.vercel.app">Harasta Rahman Tri Putra</a> (xTheoPutra) · <time datetime="2026-10-19">19 October 2026</time></p>
+<h1>I built a 23-language learning app with zero dependencies and no build step. Here&#39;s what offline-first really takes</h1>
+<p>Jago Bahasa (&quot;good at languages&quot; in Indonesian) is a free, open-source PWA for learning 23 languages, from Korean and Arabic to Swahili and Ukrainian. It is plain HTML, CSS and ES modules. There is no framework, no bundler, no <code>node_modules</code>, and <code>package.json</code> has no <code>dependencies</code> key at all. You can open the live demo, load it once, switch to airplane mode, and keep studying.</p>
+<p>What it contains today, recounted from the repo rather than copied from the README:</p>
+<ul>
+<li>23 courses with 442 lessons and 3,563 vocabulary items</li>
+<li>23 &quot;book&quot; dictionaries with 168 headwords each (3,864 entries), 2,209 of them with a full definition and example sentence</li>
+<li>161 tests, run with nothing but <code>node --test</code></li>
+</ul>
+<p>I didn&#39;t write all of that by hand. I built it over about four months with Claude Code as a pair programmer, and the full design log is in <code>docs/SESSION-LOG.md</code>. The interesting part, for me, was not the features but what it took to keep an offline-first app honest.</p>
+<h2>The service worker is the whole product</h2>
+<p>If your app has to work offline, the precache list <em>is</em> your release. <code>sw.js</code> holds a <code>VERSION</code> string (currently <code>jb-v3.5.2</code>) and an <code>ASSETS</code> array of 84 entries: the shell, every ES module, all 23 course chunks and all 23 dictionary volumes. Install caches all of it. Activate deletes every cache whose name doesn&#39;t match the current version. Then the fetch handler applies three rules:</p>
+<ul>
+<li><code>/api/*</code> always goes to the network and is never cached. That&#39;s the optional sync backend.</li>
+<li>Navigations are network-first and fall back to the cached <code>index.html</code>. If even that is missing (first visit made offline), the user gets a small readable offline page, not the browser&#39;s error screen.</li>
+<li>Static assets are cache-first. They <strong>never</strong> fall back to the HTML shell, because a module request answered with HTML is a hard parse error that takes the whole app down.</li>
+</ul>
+<p>On the page side, <code>js/pwa.js</code> shows an &quot;update available&quot; toast. It reloads on <code>controllerchange</code> only if the page already had a controller, so first-time visitors don&#39;t get a pointless reload flash.</p>
+<p>The honest limitation: cache-first means returning users keep old code until I bump <code>VERSION</code>. That bump is manual. Nothing in the test suite forces it.</p>
+<p>Splitting the catalogue into per-language chunks that load on demand made startup much lighter. All chunks are still precached, so lazy loading never breaks offline use. The catch is that every new file has to appear in <code>ASSETS</code>. So <code>tests/assets.test.mjs</code> parses <code>sw.js</code> and fails if any front-end module is missing from the list, or if the list points at a file that doesn&#39;t exist.</p>
+<h2>The bug that 156 green tests couldn&#39;t see</h2>
+<p>For 42 days, the live site served every dictionary but zero lessons.</p>
+<p>The root <code>.gitignore</code> had a line <code>data/</code>, meant for the backend&#39;s runtime JSON store. Without a leading slash, git matches a <code>data</code> directory at any depth, including <code>js/data/</code>, where all 23 course files live. The files existed on my disk, so the tests passed and <code>git status</code> was clean. They just never reached GitHub, and GitHub Pages returned 404 for every lesson.</p>
+<p>The first CI run caught it, because a CI runner clones from git rather than reading my disk. The fix was one character (<code>/data/</code>), plus a test in <code>tests/assets.test.mjs</code> that compares the precache list against what git actually tracks (excerpt):</p>
+<pre><code class="language-js">test(&quot;every precached asset is tracked by git, not merely present on disk&quot;, (t) =&gt; {
+  let tracked;
+  try {
+    tracked = new Set(
+      execFileSync(&quot;git&quot;, [&quot;ls-files&quot;, &quot;-z&quot;], { cwd: ROOT, encoding: &quot;utf8&quot; })
+        .split(&quot;\0&quot;)
+        .filter(Boolean)
+        .map((p) =&gt; `./${p}`)
+    );
+  } catch {
+    return t.skip(&quot;not a git checkout — nothing to compare the precache list against&quot;);
+  }
+  // …
+  const unshipped = [...precached].filter((p) =&gt; p !== &quot;./&quot; &amp;&amp; !tracked.has(p));
+  assert.deepEqual(
+    unshipped,
+    [],
+    `precached but never committed — the deployed site will 404 on these: ${unshipped.join(&quot;, &quot;)}`
+  );
+});
+</code></pre>
+<p>Lesson learned: being on disk doesn&#39;t mean you shipped it. Only git decides what ships.</p>
+<h2>A dictionary should be browsed by its own alphabet</h2>
+<p>A Korean dictionary isn&#39;t sorted A–Z, and neither is a Thai one. <code>js/lexicon.js</code> assigns each headword to a letter tab using the rules a printed dictionary in that script would use:</p>
+<pre><code class="language-js">// js/lexicon.js (excerpt)
+export function letterOf(lang, w, r) {
+  const src = BY_READING.has(lang) ? r || w : w;
+  const chars = Array.from(String(src).trim());
+  let ch = chars[0] || &quot;&quot;;
+  if (lang === &quot;th&quot; &amp;&amp; THAI_LEAD_VOWELS.includes(ch)) ch = chars[1] || ch;
+  if (ARABIC_BASE[ch]) ch = ARABIC_BASE[ch];
+  if (!ch) return &quot;#&quot;;
+  const code = ch.codePointAt(0);
+  if (SCRIPT_OF[lang] === &quot;han&quot; &amp;&amp; code &gt;= 0xac00 &amp;&amp; code &lt;= 0xd7a3) {
+    return HANGUL_LEAD[Math.floor((code - 0xac00) / 588)] || &quot;#&quot;;
+  }
+  // … then alphabet lookup and diacritic folding for Latin, Cyrillic, Greek
+</code></pre>
+<p>Hangul syllables are filed by their leading jamo: each initial consonant covers a block of 588 code points, so plain division finds it. Thai skips the four vowel signs written <em>before</em> their consonant. Arabic files hamza and final forms under the base letter (أ إ آ → ا, ة → ه). Japanese and Chinese are indexed by romaji and pinyin. Latin letters that NFD normalization can&#39;t decompose (Ł, Ø, ß) get an explicit map. A test checks that every headword lands in its own letter and that the letter blocks never interleave.</p>
+<h2>Refusing to fake a voice</h2>
+<p>Pronunciation uses the browser&#39;s built-in text-to-speech. On the stock Windows Chrome I tested, 10 of the 23 languages had no installed voice. The old behaviour handed Arabic text to whatever voice existed, so learners heard English phonetics or silence, and couldn&#39;t tell either from a bug. Now the app checks first:</p>
+<pre><code class="language-js">// js/core/ui.js (excerpt)
+const base = (lang) =&gt; String(lang || &quot;en&quot;).toLowerCase().split(&quot;-&quot;)[0];
+
+export function hasVoice(lang) {
+  if (!(&quot;speechSynthesis&quot; in window)) return false;
+  const list = voices();
+  if (!list.length) return true;
+  const b = base(lang);
+  return list.some((v) =&gt; v.lang &amp;&amp; base(v.lang) === b);
+}
+</code></pre>
+<p>Buttons that can&#39;t speak are marked and explained, and the audio-only modes refuse to start. The <code>split(&quot;-&quot;)</code> is there because of a bug the tests caught: the first version used <code>slice(0, 2)</code>, and Tagalog&#39;s tag is <code>fil-PH</code>. The first two letters of that are <code>fi</code>, which is Finnish. One test in <code>tests/tts.test.mjs</code> is literally named &quot;Tagalog is fil, and the first two letters of that are Finnish&quot;.</p>
+<h2>Smaller things that still took real work</h2>
+<ul>
+<li><strong>Spaced repetition</strong> is an SM-2-lite in <code>js/core/state.js</code>. It has four grades (again/hard/good/easy), starts ease at 2.5 with a floor of 1.3, and puts dictionary words you&#39;ve starred into the same rotation as lesson words.</li>
+<li><strong>Exam certificates print the same in light and dark themes.</strong> The first real PDF export printed the &quot;Install app&quot; button on every page. In dark mode, with &quot;background graphics&quot; ticked, half the text was invisible. Print colours are now pinned to ink-on-white in <code>@media print</code>. An interaction test emulates print media in both themes, asserts the computed colours match, and checks that the PDF is exactly one page.</li>
+<li><strong>CSP</strong> is <code>script-src &#39;self&#39;</code> plus one SHA-256 hash for the single inline framebuster script. A test fails if a second inline script ever appears.</li>
+<li><strong>Randomness</strong> for shuffles and exam picks uses <code>crypto.getRandomValues</code> with rejection sampling, never <code>Math.random()</code>.</li>
+</ul>
+<h2>Testing without a framework</h2>
+<p><code>npm test</code> is just <code>node --test --test-concurrency=1</code>. The 161 tests cover content shape, i18n key parity, SRS scheduling, exam fairness, the optional backend on a random port, and two browser suites. Those browser suites drive real Chrome over the DevTools Protocol using Node&#39;s built-in <code>WebSocket</code>, so they need no Puppeteer or Playwright. They skip themselves if Chrome is missing. On my machine the full run takes about 99 seconds. CI runs it on Node 20 and 22.</p>
+<p>One more lesson from CI: the final-exam test used to try only 10 random rounds and passed for weeks while the generator was lopsided (one stage got 9 questions, another 6). At 200 rounds it fails immediately on the old code. A test that samples randomly a few times isn&#39;t a guard. It&#39;s a lottery.</p>
+<h2>What it isn&#39;t (yet)</h2>
+<ul>
+<li>The UI is available in Indonesian, English and Spanish, and word meanings exist only in those three. The README, design log and commit messages are mostly in Indonesian.</li>
+<li>Content depth is uneven. English and Korean have 32 lessons each; the other 21 languages have 18. The dictionaries, by contrast, are identical in size.</li>
+<li>Pronunciation quality depends on the voices your device has.</li>
+<li>Accounts in static-hosting mode live in IndexedDB (PBKDF2, 600,000 iterations). That keeps profiles separate on a shared device, but it doesn&#39;t protect anything from someone with physical access to the device.</li>
+<li>No usage numbers to share. It&#39;s a side project, and I haven&#39;t added analytics.</li>
+</ul>
+<p>If you&#39;re thinking about building an offline-first app without a toolchain, my takeaway is that the build step you skip comes back as discipline. Your precache list, your <code>.gitignore</code>, and your version bump become the release process, so test them like code.</p>
+<h2>Links</h2>
+<ul>
+<li>Live demo: <a href="https://xtheoputra.github.io/jago-bahasa/">https://xtheoputra.github.io/jago-bahasa/</a></li>
+<li>Source (MIT): <a href="https://github.com/xtheoputra/jago-bahasa">https://github.com/xtheoputra/jago-bahasa</a></li>
+<li>xTheo Labs: <a href="https://xtheo-labs.vercel.app">https://xtheo-labs.vercel.app</a></li>
+</ul>
+<hr>
+<h2>Sources (claim → where to verify)</h2>
+<p>Repo checked out at commit <code>e8389fa</code> (2026-10-19). Commands are run from the repo root.</p>
+<table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Source / command</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>23 languages / courses</td>
+<td><code>js/data.js</code> (<code>COURSES</code>, 23 entries); <code>ls js/data</code> → 23 files</td>
+</tr>
+<tr>
+<td>442 lessons, 3,563 vocabulary items</td>
+<td>Load every <code>js/data/&lt;id&gt;.js</code> and count lessons and items; matches the sum of <code>n</code> in <code>js/data.js</code></td>
+</tr>
+<tr>
+<td>en and ko have 32 lessons, the other 21 have 18</td>
+<td>Same count, per course</td>
+</tr>
+<tr>
+<td>23 dictionaries × 168 = 3,864 entries</td>
+<td><code>js/lexicon.js</code> (<code>LEXICONS</code>, all <code>n: 168</code>); count the <code>export default</code> arrays in <code>js/lexicon/*.js</code></td>
+</tr>
+<tr>
+<td>2,209 entries with definition and example</td>
+<td>Count entries with both <code>d</code> and <code>ex</code> in <code>js/lexicon/*.js</code></td>
+</tr>
+<tr>
+<td>Band shape A1 40 · A2 40 · B1 28 · B2 28 · C1 16 · C2 16</td>
+<td>Per-language CEFR count (totals 920/920/644/644/368/368)</td>
+</tr>
+<tr>
+<td>Zero runtime dependencies</td>
+<td><code>package.json</code> has no <code>dependencies</code>; <code>grep -rhoE &quot;(from|require\()\s*[&#39;\&quot;][^&#39;\&quot;./]&quot; server tests js</code> shows only Node built-ins</td>
+</tr>
+<tr>
+<td>No build step</td>
+<td>No bundler config; <code>index.html</code> loads <code>js/app.js</code> as <code>type=&quot;module&quot;</code> directly</td>
+</tr>
+<tr>
+<td>SW <code>VERSION</code> <code>jb-v3.5.2</code>, 84 precached entries</td>
+<td><code>sw.js</code> lines 5–98; <code>awk &#39;/const ASSETS = \[/,/^\];/&#39; sw.js | grep -c &#39;&quot;\./&#39;</code> → 84</td>
+</tr>
+<tr>
+<td>Old caches deleted on activate; <code>/api</code> network-only; navigations network-first; assets cache-first with no HTML fallback</td>
+<td><code>sw.js</code> <code>activate</code> and <code>fetch</code> handlers</td>
+</tr>
+<tr>
+<td>Update toast, reload only when page already had a controller</td>
+<td><code>js/pwa.js</code></td>
+</tr>
+<tr>
+<td>Precache list ↔ modules and existing files test</td>
+<td><code>tests/assets.test.mjs</code>: &quot;every front-end ES module is precached&quot;, &quot;the precache list has no dead entries&quot;</td>
+</tr>
+<tr>
+<td><code>.gitignore</code> <code>data/</code> swallowed <code>js/data/</code> for 42 days</td>
+<td>Commit <code>3f09801</code> (2026-07-23, chunk split) → <code>git log --diff-filter=A -- js/data/es.js</code> → <code>c01baae</code> (2026-09-03); <code>.gitignore</code> comment; <code>docs/SESSION-LOG.md</code> lines 14–42</td>
+</tr>
+<tr>
+<td>Git-tracked precache test</td>
+<td><code>tests/assets.test.mjs</code>, test at line 161</td>
+</tr>
+<tr>
+<td>Per-script A–Z indexing (Hangul ÷588, Thai leading vowels, Arabic base letters, romaji/pinyin, Ł/Ø/ß)</td>
+<td><code>js/lexicon.js</code> lines 128–194 (<code>letterOf</code>, <code>ARABIC_BASE</code>, <code>THAI_LEAD_VOWELS</code>, <code>LATIN_BASE</code>)</td>
+</tr>
+<tr>
+<td>Letter-block test</td>
+<td><code>tests/lexicon.test.mjs</code> (README test table describes it)</td>
+</tr>
+<tr>
+<td><code>hasVoice</code> splits at the hyphen; Tagalog/Finnish bug</td>
+<td><code>js/core/ui.js</code> (<code>base</code>, <code>hasVoice</code>); <code>tests/tts.test.mjs</code> &quot;Tagalog is fil, and the first two letters of that are Finnish&quot;; <code>docs/SESSION-LOG.md</code> v3.4 section</td>
+</tr>
+<tr>
+<td>10 of 23 without a voice on stock Windows Chrome</td>
+<td>Observation in <code>docs/SESSION-LOG.md</code> v3.4 section and README feature table (machine-dependent, not reproducible by command)</td>
+</tr>
+<tr>
+<td>Audio-only modes refuse to run without a voice</td>
+<td><code>js/views/practice.js</code> (<code>hasVoice</code> checks at ~line 509 and 1491); interact test &quot;a language this device cannot pronounce says so…&quot;</td>
+</tr>
+<tr>
+<td>SM-2-lite, ease 2.5, floor 1.3, 4 grades, dictionary words in rotation</td>
+<td><code>js/core/state.js</code> <code>srsGrade</code>, <code>dictCardKeys</code>, <code>srsPool</code></td>
+</tr>
+<tr>
+<td>Certificate prints identically in light/dark, one page, no install button</td>
+<td><code>css/styles.css</code> <code>@media print</code> (line 1129); <code>tests/interact.test.mjs</code> &quot;the certificate prints the same sheet whether the screen is dark or light&quot;</td>
+</tr>
+<tr>
+<td>CSP <code>script-src &#39;self&#39; &#39;sha256-4zd2…&#39;</code> matches the framebuster</td>
+<td><code>index.html</code> line 6; <code>printf &#39;%s&#39; &#39;&lt;script body&gt;&#39; | openssl dgst -sha256 -binary | base64</code> → <code>4zd2smDdcAUaJ7gzkxrkyD/owwoLFxcWP8NtZjfyz54=</code></td>
+</tr>
+<tr>
+<td>Only one inline script allowed</td>
+<td><code>tests/assets.test.mjs</code> &quot;index.html loads the app as a module and keeps its CSP&quot;</td>
+</tr>
+<tr>
+<td>Crypto randomness, rejection sampling</td>
+<td><code>js/core/random.js</code> (<code>randInt</code>, <code>shuffle</code>)</td>
+</tr>
+<tr>
+<td>161 tests, 0 skipped, ~99 s</td>
+<td><code>npm test</code> on Node v24.21.0, Windows 11 with Chrome: <code>tests 161 · pass 161 · skipped 0 · duration_ms 98564</code></td>
+</tr>
+<tr>
+<td>Browser tests via CDP with Node&#39;s built-in WebSocket</td>
+<td><code>tests/interact.test.mjs</code> header comment and imports (only <code>node:</code> modules)</td>
+</tr>
+<tr>
+<td>CI on Node 20 and 22</td>
+<td><code>.github/workflows/uji.yml</code> matrix</td>
+</tr>
+<tr>
+<td>Final-exam imbalance 9/6/8; 10 → 200 rounds</td>
+<td>Commit <code>aa07e8e</code>; <code>docs/SESSION-LOG.md</code> lines 44–60</td>
+</tr>
+<tr>
+<td>UI in id/en/es, auto-selected from browser language</td>
+<td><code>js/i18n.js</code> (<code>langs</code>, <code>init()</code> uses <code>navigator.language</code>, default <code>id</code>)</td>
+</tr>
+<tr>
+<td>Local accounts: PBKDF2-SHA256, 600,000 iterations, IndexedDB</td>
+<td><code>js/auth/crypto.js</code> line 14 (<code>ITERATIONS = 600_000</code>); <code>js/auth/db.js</code></td>
+</tr>
+<tr>
+<td>Built with Claude Code</td>
+<td><code>docs/SESSION-LOG.md</code> line 3</td>
+</tr>
+<tr>
+<td>About four months of development</td>
+<td><code>git log --reverse</code> first commit 2026-06-24; last commit 2026-10-19</td>
+</tr>
+<tr>
+<td>MIT license</td>
+<td><code>package.json</code> <code>&quot;license&quot;: &quot;MIT&quot;</code>; README footer</td>
+</tr>
+</tbody></table>
+
+    </article>
+    <footer>© 2026 Harasta Rahman Tri Putra (xTheoPutra) · <a href="https://xtheo-labs.vercel.app">xTheo Labs</a> · <a href="https://github.com/xtheoputra">GitHub</a></footer>
+  </main>
+</body>
+</html>
