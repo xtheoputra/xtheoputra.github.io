@@ -34,6 +34,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: lycheeverse/lychee-action@v2
         with:
-          # LinkedIn and Medium answer bots with 999/403; they are checked by hand.
-          args: --no-progress --max-retries 3 --accept 200,206,429 --exclude linkedin.com --exclude medium.com "**/*.html" "*.md"
+          # LinkedIn, Medium, and Substack answer bots with 999/403; they are checked by hand.
+          args: --no-progress --max-retries 3 --accept 200,206,429 --exclude linkedin.com --exclude medium.com --exclude substack.com "**/*.html" "*.md"
           fail: true
