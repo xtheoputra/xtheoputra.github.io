@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://xtheoputra.github.io/sitemap.xml
+Sitemap: https://xtheoputra.github.io/jago-bahasa/sitemap.xml
